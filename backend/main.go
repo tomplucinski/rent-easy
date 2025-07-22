@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 )
@@ -35,15 +36,12 @@ func main() {
 			return
 		}
 
-		chatCompletion, err := client.Chat.Completions.New(
-			context.TODO(), openai.ChatCompletionNewParams{
-				Messages: []openai.ChatCompletionMessageParamUnion{
-					openai.ChatCompletionMessageParamUser{
-						Content: "Say this is a test",
-					},
-				},
+		chatCompletion, err := client.Chat.Completions.New(context.TODO(), openai.ChatCompletionNewParams{
+			Messages: []openai.ChatCompletionMessageParamUnion{
+				openai.UserMessage("Say this is a test"),
 			},
-		)
+			Model: openai.ChatModelGPT4o,
+		})
 
 		if err != nil {
 			log.Println("OpenAI error:", err)
