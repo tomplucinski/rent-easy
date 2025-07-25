@@ -1,15 +1,13 @@
 package main
 
 import (
-	"context"
+	"chatgpt-api-server/clients"
+	"chatgpt-api-server/controllers"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/openai/openai-go"
-	"github.com/openai/openai-go/option"
 )
 
 func main() {
@@ -20,38 +18,11 @@ func main() {
 		log.Fatal("OPENAI_API_KEY not set")
 	}
 
-	client := openai.NewClient(
-		option.WithAPIKey(apiKey),
-	)
+	clients.InitOpenAIClient(apiKey)
 
 	router := gin.Default()
 
-	router.POST("/chat", func(c *gin.Context) {
-		var req struct {
-			Prompt string `json:"prompt"`
-		}
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-			return
-		}
-
-		chatCompletion, err := client.Chat.Completions.New(context.TODO(), openai.ChatCompletionNewParams{
-			Messages: []openai.ChatCompletionMessageParamUnion{
-				openai.UserMessage(req.Prompt),
-			},
-			Model: openai.ChatModelGPT4o,
-		})
-
-		if err != nil {
-			log.Println("OpenAI error:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "OpenAI API error"})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"reply": chatCompletion.Choices[0].Message.Content,
-		})
-	})
+	router.POST("/chat", controllers.ChatHandler)
 
 	log.Println("Server running on http://localhost:8080")
 	router.Run(":8080")
